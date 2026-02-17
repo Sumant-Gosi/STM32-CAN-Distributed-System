@@ -4,18 +4,8 @@ A distributed embedded system using two STM32F446RE microcontrollers
 communicating over CAN bus, both running FreeRTOS.
 
 ## System Architecture
-```
-PC (CoolTerm / Terminal)
-        │
-       UART (115200 baud)
-        │
-  ┌─────▼──────┐                    ┌──────────────┐
-  │  NODE A    │◄──── CAN Bus ─────►│   NODE B     │
-  │ STM32F446  │    TJA1050 x2      │ STM32F446    │
-  │            │  120Ω termination  │              │
-  │ FreeRTOS   │   500 kbit/s       │ FreeRTOS     │
-  └────────────┘                    └──────────────┘
-```
+<img width="415" height="693" alt="stm32-can-based-distributed-system drawio" src="https://github.com/user-attachments/assets/1bf699ab-ea99-4137-95e2-d91561b015b4" />
+
 
 ## Skills Demonstrated
 - **FreeRTOS** — Multiple tasks, queues, ISR-to-task communication
@@ -105,7 +95,6 @@ FreeRTOS Tasks:
 - FreeRTOS Task List view used to monitor CPU usage per task
 - SWV/ITM used for zero-overhead profiling
 
-<img width="412" height="200" alt="image" src="https://github.com/user-attachments/assets/413efeb0-af5c-4ba7-8871-8ea9bb2c0c7c" />
 
 ## Author
 Sumanth Gosi
