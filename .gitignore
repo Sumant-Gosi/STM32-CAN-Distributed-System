@@ -1,0 +1,18 @@
+# STM32CubeIDE build artifacts
+Debug/
+Release/
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+*.d
+*.su
+
+# IDE settings
+.settings/
+.cproject
+.project
+
+# Mac
+.DS_Store
