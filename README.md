@@ -105,5 +105,7 @@ FreeRTOS Tasks:
 - FreeRTOS Task List view used to monitor CPU usage per task
 - SWV/ITM used for zero-overhead profiling
 
+<img width="412" height="200" alt="image" src="https://github.com/user-attachments/assets/413efeb0-af5c-4ba7-8871-8ea9bb2c0c7c" />
+
 ## Author
 Sumanth Gosi
