@@ -372,4 +372,3 @@ Embedded Systems Engineer
 *This project demonstrates production-ready embedded system design principles including protocol architecture, fault tolerance, and real-time operating system integration.*
 =======
 Sumanth Gosi
->>>>>>> a81b649060772a6ef146d381795a4b6e8f6d8a7f
