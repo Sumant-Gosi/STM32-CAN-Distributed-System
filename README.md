@@ -322,24 +322,6 @@ stm32-can-distributed-system/
 └── README.md
 ```
 
-## Protocol Design Decisions
-
-### Why Explicit Commands vs Status Frames?
-
-**Old Design Problem:**
-```
-Node A sends STATUS=OK (meaningless — it doesn't evaluate thresholds)
-Node B evaluates and sends STATUS=WARNING (confusing semantics)
-```
-
-**New Design Solution:**
-```
-Node A: "Here's my data" (clear purpose)
-Node B: "Take this action" (clear command)
-```
-
-This follows **separation of concerns** principle and mirrors CANopen/J1939 architecture.
-
 ### When To Use ACK
 
 | Scenario | ACK? | Rationale |
@@ -350,25 +332,6 @@ This follows **separation of concerns** principle and mirrors CANopen/J1939 arch
 | Configuration change | ✅ | One-time, must succeed |
 | Bootloader entry | ✅ | Safety-critical state change |
 
-## Testing & Validation
-
-### Unit Tests (Pre-Hardware)
-- ✅ Code compiles with 0 errors, 0 warnings
-- ✅ `git diff --check` passes (no whitespace issues)
-- ✅ Static analysis confirms protocol semantics
-
-### Integration Tests (With Hardware)
-- ✅ Both boards boot and log to UART
-- ✅ CAN frames transmit (verify with second board RX)
-- ✅ Commands trigger on threshold violation
-- ✅ ACK frames received within timeout
-- ✅ Timeout handling logs error when expected
-
-### Fault Injection Tests
-- ✅ Disconnect CAN wire → verify timeout error
-- ✅ Remove termination resistor → verify bus errors
-- ✅ Simulate high RPM → verify command sent
-- ✅ Flash only NodeA → verify graceful degradation
 
 ## Future Enhancements
 
@@ -399,7 +362,6 @@ This follows **separation of concerns** principle and mirrors CANopen/J1939 arch
 
 
 ## Author
-<<<<<<< HEAD
 
 **Sumanth Gosi**  
 Embedded Systems Engineer  
