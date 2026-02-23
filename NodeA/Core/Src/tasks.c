@@ -8,9 +8,13 @@
 
 #include "tasks.h"
 #include "main.h"
+#include <stdbool.h>
 
 /* ── Log Queue ───────────────────────────────── */
 osMessageQueueId_t logQueueHandle;
+
+/* ── ACK Tracking ─────────────────────────────── */
+static volatile bool ackReceived = false;
 
 /* ─────────────────────────────────────────────────
  * vHeartbeatTask
@@ -52,10 +56,26 @@ void vCANTransmitTask(void *argument)
         temp += 1;
         if(temp > 100) temp = 25;
 
+        /* Prepare ACK tracking before transmit */
+        ackReceived = false;
+
         /* Transmit all values over CAN */
         CAN_App_TransmitRPM(rpm);
         CAN_App_TransmitTemp(temp);
         CAN_App_TransmitStatus(status);
+
+        /* Wait for ACK from Node B (max 200ms) */
+        uint32_t startTime = osKernelGetTickCount();
+
+        while(!ackReceived && (osKernelGetTickCount() - startTime) < 200U)
+        {
+            osDelay(10);
+        }
+
+        if(!ackReceived)
+        {
+            UART_Log("CAN_TX", "ACK TIMEOUT - Node B not responding!");
+        }
 
         osDelay(100);   /* Send every 100ms */
     }
@@ -104,6 +124,7 @@ void vCANReceiveTask(void *argument)
                 }
                 case CAN_ID_ACK:
                 {
+                    ackReceived = true;
                     UART_Log_Int("CAN_RX", "ACK received", frame.data[0]);
                     break;
                 }
