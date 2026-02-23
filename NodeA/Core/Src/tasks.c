@@ -102,6 +102,11 @@ void vCANReceiveTask(void *argument)
                     UART_Log_Int("CAN_RX", "STATUS received", frame.data[0]);
                     break;
                 }
+                case CAN_ID_ACK:
+                {
+                    UART_Log_Int("CAN_RX", "ACK received", frame.data[0]);
+                    break;
+                }
                 default:
                 {
                     UART_Log_Int("CAN_RX", "Unknown ID", frame.id);

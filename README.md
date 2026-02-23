@@ -33,20 +33,20 @@ communicating over CAN bus, both running FreeRTOS.
 | ACK | 0x200 | 1 | Acknowledgement from Node B |
 
 ## Node A — Commander
-Simulates an ECU transmitting sensor data over CAN every 100ms.
+Simulates an ECU transmitting sensor data over CAN every 100ms and listening for ACK frames from Node B.
 
 FreeRTOS Tasks:
 - `vCANTransmitTask` — Sends RPM, TEMP, STATUS every 100ms
-- `vCANReceiveTask` — Listens for ACK from Node B
+- `vCANReceiveTask` — Receives STATUS and ACK responses from Node B
 - `vHeartbeatTask` — Blinks LED every 500ms
 - `vUARTLogTask` — Handles UART log queue
 
 ## Node B — Responder
-Receives CAN frames, checks thresholds, sends ACK back to Node A.
+Receives CAN frames, checks thresholds, sends dedicated ACK frames back to Node A.
 
 FreeRTOS Tasks:
 - `vCANReceiveTask` — Processes incoming frames from ISR queue
-- `vCANTransmitTask` — Sends ACK and status responses
+- `vCANTransmitTask` — Sends periodic status keepalive responses
 - `vHeartbeatTask` — Blinks LED every 500ms
 - `vUARTLogTask` — Handles UART log queue
 

@@ -37,5 +37,6 @@ void CAN_App_Init(CAN_HandleTypeDef *hcan);
 void CAN_App_TransmitRPM(uint16_t rpm);
 void CAN_App_TransmitTemp(int16_t temp);
 void CAN_App_TransmitStatus(uint8_t status);
+void CAN_App_TransmitAck(uint8_t ackCode);
 
 #endif /* INC_CAN_APP_H_ */

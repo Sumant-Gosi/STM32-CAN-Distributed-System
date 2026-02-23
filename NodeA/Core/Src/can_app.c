@@ -104,6 +104,14 @@ void CAN_App_TransmitStatus(uint8_t status)
     UART_Log_Int("CAN", "TX STATUS", status);
 }
 
+void CAN_App_TransmitAck(uint8_t ackCode)
+{
+    uint8_t data[1];
+    data[0] = ackCode;
+    CAN_Send(CAN_ID_ACK, data, 1);
+    UART_Log_Int("CAN", "TX ACK", ackCode);
+}
+
 /* ─────────────────────────────────────────────────
  * CAN RX Interrupt Callback
  * Called automatically by HAL when a frame arrives

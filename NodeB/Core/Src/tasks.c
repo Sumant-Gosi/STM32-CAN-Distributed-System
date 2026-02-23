@@ -87,8 +87,8 @@ void vCANReceiveTask(void *argument)
                     g_status = frame.data[0];
                     UART_Log_Int("CAN_RX", "STATUS", g_status);
 
-                    /* Send ACK back to Node A */
-                    CAN_App_TransmitStatus(NODE_STATUS_OK);
+                    /* Send dedicated ACK frame back to Node A */
+                    CAN_App_TransmitAck(NODE_STATUS_OK);
                     break;
                 }
                 default:
@@ -112,8 +112,7 @@ void vCANTransmitTask(void *argument)
 
     for(;;)
     {
-        /* Node B transmits reactively not periodically */
-        /* Just keep alive with a status every 2 seconds */
+        /* Node B sends keepalive status periodically */
         CAN_App_TransmitStatus(NODE_STATUS_OK);
         osDelay(2000);
     }
