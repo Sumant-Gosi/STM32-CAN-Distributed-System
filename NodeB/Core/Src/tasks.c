@@ -1,13 +1,14 @@
 /*
  * tasks.c
  *
- *  Created on: Feb 17, 2026
+ *  Created on: Feb 23, 2026
  *      Author: sumanthgosi
  */
 
 
 #include "tasks.h"
 #include "main.h"
+#include <stdbool.h>
 
 /* ── Log Queue ───────────────────────────────── */
 osMessageQueueId_t logQueueHandle;
@@ -15,11 +16,12 @@ osMessageQueueId_t logQueueHandle;
 /* ── Latest received data ────────────────────── */
 static uint16_t g_rpm    = 0;
 static int16_t  g_temp   = 0;
-static uint8_t  g_status = 0;
+
+/* ── ACK tracking ────────────────────────────── */
+static volatile bool ackReceived = false;
 
 /* ─────────────────────────────────────────────────
  * vHeartbeatTask
- * Blinks LED every 500ms — proves scheduler alive
  * ───────────────────────────────────────────────── */
 void vHeartbeatTask(void *argument)
 {
@@ -34,8 +36,7 @@ void vHeartbeatTask(void *argument)
 
 /* ─────────────────────────────────────────────────
  * vCANReceiveTask
- * Waits for frames from RX queue
- * Populated by CAN RX interrupt
+ * Node B receives data, evaluates, sends commands
  * ───────────────────────────────────────────────── */
 void vCANReceiveTask(void *argument)
 {
@@ -51,7 +52,6 @@ void vCANReceiveTask(void *argument)
 
     for(;;)
     {
-        /* Block until frame arrives */
         if(osMessageQueueGet(canRxQueueHandle, &frame, NULL, osWaitForever) == osOK)
         {
             switch(frame.id)
@@ -61,36 +61,71 @@ void vCANReceiveTask(void *argument)
                     g_rpm = ((uint16_t)frame.data[0] << 8) | frame.data[1];
                     UART_Log_Int("CAN_RX", "RPM", g_rpm);
 
-                    /* Warn if RPM too high */
+                    /* Threshold check */
                     if(g_rpm > 5000)
                     {
-                        UART_Log("CAN_RX", "WARNING - High RPM!");
-                        CAN_App_TransmitStatus(NODE_STATUS_WARN);
+                        UART_Log("WARNING", "RPM threshold exceeded!");
+                        CAN_App_TransmitCommand(CMD_WARNING_HIGH_RPM);
+
+                        /* Optional: Wait for ACK with timeout */
+                        ackReceived = false;
+                        uint32_t startTime = osKernelGetTickCount();
+
+                        while(!ackReceived && (osKernelGetTickCount() - startTime) < 200)
+                        {
+                            osDelay(10);
+                        }
+
+                        if(!ackReceived)
+                        {
+                            UART_Log("ERROR", "Node A did not ACK command!");
+                        }
                     }
                     break;
                 }
+
                 case CAN_ID_TEMP:
                 {
                     g_temp = ((int16_t)frame.data[0] << 8) | frame.data[1];
                     UART_Log_Int("CAN_RX", "TEMP", g_temp);
 
-                    /* Warn if temperature too high */
+                    /* Threshold check */
                     if(g_temp > 80)
                     {
-                        UART_Log("CAN_RX", "WARNING - High Temp!");
-                        CAN_App_TransmitStatus(NODE_STATUS_WARN);
+                        UART_Log("WARNING", "Temperature threshold exceeded!");
+                        CAN_App_TransmitCommand(CMD_WARNING_HIGH_TEMP);
+
+                        /* Optional: Wait for ACK with timeout */
+                        ackReceived = false;
+                        uint32_t startTime = osKernelGetTickCount();
+
+                        while(!ackReceived && (osKernelGetTickCount() - startTime) < 200)
+                        {
+                            osDelay(10);
+                        }
+
+                        if(!ackReceived)
+                        {
+                            UART_Log("ERROR", "Node A did not ACK command!");
+                        }
                     }
                     break;
                 }
-                case CAN_ID_STATUS:
-                {
-                    g_status = frame.data[0];
-                    UART_Log_Int("CAN_RX", "STATUS", g_status);
 
-                    /* Send ACK back to Node A */
-                    CAN_App_TransmitStatus(NODE_STATUS_OK);
+                case CAN_ID_HEARTBEAT:
+                {
+                    UART_Log("CAN_RX", "Heartbeat from Node A");
                     break;
                 }
+
+                case CAN_ID_ACK:
+                {
+                    uint8_t ackedCmd = frame.data[0];
+                    UART_Log_Int("CAN_RX", "ACK received for command", ackedCmd);
+                    ackReceived = true;  // Signal to waiting task
+                    break;
+                }
+
                 default:
                 {
                     UART_Log_Int("CAN_RX", "Unknown ID", frame.id);
@@ -103,8 +138,8 @@ void vCANReceiveTask(void *argument)
 
 /* ─────────────────────────────────────────────────
  * vCANTransmitTask
- * Node B only sends ACK and status responses
- * Not periodic like Node A
+ * Node B doesn't send periodic data, only commands
+ * This task can be used for periodic health checks
  * ───────────────────────────────────────────────── */
 void vCANTransmitTask(void *argument)
 {
@@ -112,16 +147,14 @@ void vCANTransmitTask(void *argument)
 
     for(;;)
     {
-        /* Node B transmits reactively not periodically */
-        /* Just keep alive with a status every 2 seconds */
-        CAN_App_TransmitStatus(NODE_STATUS_OK);
+        /* Node B could send its own heartbeat if needed */
+        // CAN_App_TransmitHeartbeat();
         osDelay(2000);
     }
 }
 
 /* ─────────────────────────────────────────────────
  * vUARTLogTask
- * Lowest priority — handles log queue messages
  * ───────────────────────────────────────────────── */
 void vUARTLogTask(void *argument)
 {

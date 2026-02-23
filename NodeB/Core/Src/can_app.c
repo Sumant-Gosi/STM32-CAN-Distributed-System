@@ -1,7 +1,7 @@
 /*
  * can_app.c
  *
- *  Created on: Feb 17, 2026
+ *  Created on: Feb 23, 2026
  *      Author: sumanthgosi
  */
 
@@ -12,7 +12,6 @@
 /* ── Private Variables ───────────────────────── */
 static CAN_HandleTypeDef *_hcan;
 static CAN_TxHeaderTypeDef TxHeader;
-// static uint8_t TxData[8];
 static uint32_t TxMailbox;
 
 /* ── RX Queue ────────────────────────────────── */
@@ -27,16 +26,15 @@ typedef struct {
 
 /* ─────────────────────────────────────────────────
  * CAN_App_Init
- * Call this once before starting the scheduler
  * ───────────────────────────────────────────────── */
 void CAN_App_Init(CAN_HandleTypeDef *hcan)
 {
     _hcan = hcan;
 
-    /* Create the RX queue — holds up to 10 CAN frames */
+    /* Create the RX queue */
     canRxQueueHandle = osMessageQueueNew(10, sizeof(CAN_Frame_t), NULL);
 
-    /* Configure RX Filter — accept ALL messages for now */
+    /* Configure RX Filter — accept ALL messages */
     CAN_FilterTypeDef filter;
     filter.FilterBank           = 0;
     filter.FilterMode           = CAN_FILTERMODE_IDMASK;
@@ -49,7 +47,7 @@ void CAN_App_Init(CAN_HandleTypeDef *hcan)
     filter.FilterActivation     = ENABLE;
     HAL_CAN_ConfigFilter(_hcan, &filter);
 
-    /* Start CAN peripheral */
+    /* Start CAN */
     HAL_CAN_Start(_hcan);
 
     /* Enable RX interrupt */
@@ -59,7 +57,7 @@ void CAN_App_Init(CAN_HandleTypeDef *hcan)
 }
 
 /* ─────────────────────────────────────────────────
- * Internal helper — builds and sends a CAN frame
+ * Internal helper — sends a CAN frame
  * ───────────────────────────────────────────────── */
 static void CAN_Send(uint32_t id, uint8_t *data, uint8_t len)
 {
@@ -81,10 +79,10 @@ static void CAN_Send(uint32_t id, uint8_t *data, uint8_t len)
 void CAN_App_TransmitRPM(uint16_t rpm)
 {
     uint8_t data[2];
-    data[0] = (rpm >> 8) & 0xFF;   /* High byte */
-    data[1] = rpm & 0xFF;           /* Low byte  */
+    data[0] = (rpm >> 8) & 0xFF;
+    data[1] = rpm & 0xFF;
     CAN_Send(CAN_ID_RPM, data, 2);
-    UART_Log_Int("CAN", "TX RPM", rpm);
+    UART_Log_Int("CAN_TX", "RPM", rpm);
 }
 
 void CAN_App_TransmitTemp(int16_t temp)
@@ -93,21 +91,34 @@ void CAN_App_TransmitTemp(int16_t temp)
     data[0] = (temp >> 8) & 0xFF;
     data[1] = temp & 0xFF;
     CAN_Send(CAN_ID_TEMP, data, 2);
-    UART_Log_Int("CAN", "TX TEMP", temp);
+    UART_Log_Int("CAN_TX", "TEMP", temp);
 }
 
-void CAN_App_TransmitStatus(uint8_t status)
+void CAN_App_TransmitHeartbeat(void)
+{
+    uint8_t data[1] = {0xAA};  // Arbitrary alive signal
+    CAN_Send(CAN_ID_HEARTBEAT, data, 1);
+    UART_Log("CAN_TX", "Heartbeat");
+}
+
+void CAN_App_TransmitCommand(uint8_t cmdCode)
 {
     uint8_t data[1];
-    data[0] = status;
-    CAN_Send(CAN_ID_STATUS, data, 1);
-    UART_Log_Int("CAN", "TX STATUS", status);
+    data[0] = cmdCode;
+    CAN_Send(CAN_ID_COMMAND, data, 1);
+    UART_Log_Int("CAN_TX", "COMMAND", cmdCode);
+}
+
+void CAN_App_TransmitAck(uint8_t ackedCmd)
+{
+    uint8_t data[1];
+    data[0] = ackedCmd;
+    CAN_Send(CAN_ID_ACK, data, 1);
+    UART_Log_Int("CAN_TX", "ACK", ackedCmd);
 }
 
 /* ─────────────────────────────────────────────────
  * CAN RX Interrupt Callback
- * Called automatically by HAL when a frame arrives
- * DO NOT call this yourself — HAL calls it
  * ───────────────────────────────────────────────── */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
@@ -119,7 +130,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         frame.id  = RxHeader.StdId;
         frame.dlc = RxHeader.DLC;
 
-        /* Send frame to queue from ISR — task will process it */
         osMessageQueuePut(canRxQueueHandle, &frame, 0, 0);
     }
 }

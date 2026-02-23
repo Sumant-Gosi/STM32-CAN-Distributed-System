@@ -1,7 +1,7 @@
 /*
  * tasks.c
  *
- *  Created on: Feb 17, 2026
+ *  Created on: Feb 23, 2026
  *      Author: sumanthgosi
  */
 
@@ -14,8 +14,6 @@ osMessageQueueId_t logQueueHandle;
 
 /* ─────────────────────────────────────────────────
  * vHeartbeatTask
- * Blinks onboard LED every 500ms
- * Proves the FreeRTOS scheduler is alive
  * ───────────────────────────────────────────────── */
 void vHeartbeatTask(void *argument)
 {
@@ -24,23 +22,20 @@ void vHeartbeatTask(void *argument)
     for(;;)
     {
         HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-        UART_Log("HEARTBEAT", "Alive");
         osDelay(500);
     }
 }
 
 /* ─────────────────────────────────────────────────
  * vCANTransmitTask
- * Sends RPM, Temperature, Status over CAN
- * every 100ms — simulates a real ECU
+ * Node A broadcasts sensor data periodically
  * ───────────────────────────────────────────────── */
 void vCANTransmitTask(void *argument)
 {
     UART_Log("CAN_TX", "Task started");
 
-    uint16_t rpm  = 800;       /* Idle RPM */
-    int16_t  temp = 25;        /* Room temp */
-    uint8_t  status = NODE_STATUS_OK;
+    uint16_t rpm  = 800;
+    int16_t  temp = 25;
 
     for(;;)
     {
@@ -52,19 +47,18 @@ void vCANTransmitTask(void *argument)
         temp += 1;
         if(temp > 100) temp = 25;
 
-        /* Transmit all values over CAN */
+        /* Broadcast data - no ACK needed */
         CAN_App_TransmitRPM(rpm);
         CAN_App_TransmitTemp(temp);
-        CAN_App_TransmitStatus(status);
+        CAN_App_TransmitHeartbeat();
 
-        osDelay(100);   /* Send every 100ms */
+        osDelay(100);
     }
 }
 
 /* ─────────────────────────────────────────────────
  * vCANReceiveTask
- * Waits for frames from the RX queue
- * Queue is populated by the CAN RX interrupt
+ * Node A receives COMMANDS from Node B and ACKs them
  * ───────────────────────────────────────────────── */
 void vCANReceiveTask(void *argument)
 {
@@ -80,33 +74,48 @@ void vCANReceiveTask(void *argument)
 
     for(;;)
     {
-        /* Block here until a frame arrives in the queue */
         if(osMessageQueueGet(canRxQueueHandle, &frame, NULL, osWaitForever) == osOK)
         {
             switch(frame.id)
             {
-                case CAN_ID_RPM:
+                case CAN_ID_COMMAND:
                 {
-                    uint16_t rpm = ((uint16_t)frame.data[0] << 8) | frame.data[1];
-                    UART_Log_Int("CAN_RX", "RPM received", rpm);
+                    uint8_t cmd = frame.data[0];
+
+                    /* IMMEDIATELY send ACK */
+                    CAN_App_TransmitAck(cmd);
+
+                    /* Handle the command */
+                    switch(cmd)
+                    {
+                        case CMD_WARNING_HIGH_RPM:
+                            UART_Log("COMMAND", "Node B detected HIGH RPM!");
+                            // Take action: reduce throttle, log event, etc.
+                            break;
+
+                        case CMD_WARNING_HIGH_TEMP:
+                            UART_Log("COMMAND", "Node B detected HIGH TEMP!");
+                            // Take action: activate cooling, reduce load, etc.
+                            break;
+
+                        case CMD_REDUCE_POWER:
+                            UART_Log("COMMAND", "Reducing power as requested");
+                            break;
+
+                        case CMD_ACTIVATE_COOLING:
+                            UART_Log("COMMAND", "Activating cooling system");
+                            break;
+
+                        default:
+                            UART_Log_Int("COMMAND", "Unknown command", cmd);
+                            break;
+                    }
                     break;
                 }
-                case CAN_ID_TEMP:
-                {
-                    int16_t temp = ((int16_t)frame.data[0] << 8) | frame.data[1];
-                    UART_Log_Int("CAN_RX", "TEMP received", temp);
-                    break;
-                }
-                case CAN_ID_STATUS:
-                {
-                    UART_Log_Int("CAN_RX", "STATUS received", frame.data[0]);
-                    break;
-                }
+
                 default:
-                {
-                    UART_Log_Int("CAN_RX", "Unknown ID", frame.id);
+                    // Ignore other messages (Node A doesn't care about HEARTBEAT from B, etc.)
                     break;
-                }
             }
         }
     }
@@ -114,8 +123,6 @@ void vCANReceiveTask(void *argument)
 
 /* ─────────────────────────────────────────────────
  * vUARTLogTask
- * Lowest priority task
- * Handles any extra log messages from a queue
  * ───────────────────────────────────────────────── */
 void vUARTLogTask(void *argument)
 {
