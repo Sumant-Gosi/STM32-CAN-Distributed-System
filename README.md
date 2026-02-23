@@ -3,21 +3,7 @@
 A distributed embedded system demonstrating command-based CAN bus communication between two STM32F446RE microcontrollers running FreeRTOS. Features threshold detection, explicit ACK protocol, and timeout-based fault detection.
 
 ## System Architecture
-```
-PC (Terminal / CoolTerm)
-        │
-       UART (115200 baud)
-        │
-  ┌─────▼──────┐                    ┌──────────────┐
-  │  NODE A    │◄──── CAN Bus ─────►│   NODE B     │
-  │ STM32F446  │    TJA1050 x2      │ STM32F446    │
-  │            │  120Ω termination  │              │
-  │ FreeRTOS   │   500 kbit/s       │ FreeRTOS     │
-  │            │                    │              │
-  │ Sensor     │                    │ Controller   │
-  │ Node       │                    │ Node         │
-  └────────────┘                    └──────────────┘
-```
+<img width="415" height="693" alt="stm32-can-based-distributed-system drawio" src="https://github.com/user-attachments/assets/1bf699ab-ea99-4137-95e2-d91561b015b4" />
 
 ## Skills Demonstrated
 - **FreeRTOS** — Multiple tasks, message queues, ISR-to-task communication, semaphores
@@ -411,7 +397,9 @@ This follows **separation of concerns** principle and mirrors CANopen/J1939 arch
 - [CAN Bus Specification (ISO 11898)](https://www.iso.org/standard/63648.html)
 - [CANopen Protocol](https://www.can-cia.org/canopen/)
 
+
 ## Author
+<<<<<<< HEAD
 
 **Sumanth Gosi**  
 Embedded Systems Engineer  
@@ -420,3 +408,6 @@ Embedded Systems Engineer
 ---
 
 *This project demonstrates production-ready embedded system design principles including protocol architecture, fault tolerance, and real-time operating system integration.*
+=======
+Sumanth Gosi
+>>>>>>> a81b649060772a6ef146d381795a4b6e8f6d8a7f
