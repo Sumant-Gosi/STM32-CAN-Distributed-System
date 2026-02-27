@@ -5,6 +5,11 @@ A distributed embedded system demonstrating command-based CAN bus communication 
 ## System Architecture
 <img width="415" height="693" alt="stm32-can-based-distributed-system drawio" src="https://github.com/user-attachments/assets/1bf699ab-ea99-4137-95e2-d91561b015b4" />
 
+## Demo
+
+![D6B011D3-BC69-4A10-BF48-09C2F9440FF5_1_102_o](https://github.com/user-attachments/assets/4e971803-900b-40a2-8fb7-4890ace309ba)
+
+
 ## Skills Demonstrated
 - **FreeRTOS** — Multiple tasks, message queues, ISR-to-task communication, semaphores
 - **CAN Bus Protocol Design** — Command/data separation, explicit ACK, timeout handling
