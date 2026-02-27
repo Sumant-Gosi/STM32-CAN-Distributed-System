@@ -107,24 +107,7 @@ Receives data from Node A, evaluates thresholds, sends commands when limits exce
    - TEMP > 80°C → Send CMD_WARNING_HIGH_TEMP
 3. Waits for ACK with 200ms timeout
 4. If timeout → Logs error, can retry or escalate
-
-### ACK Timeout Handling
-```c
-CAN_App_TransmitCommand(CMD_WARNING_HIGH_RPM);
-
-// Wait for ACK with 200ms timeout
-ackReceived = false;
-uint32_t startTime = osKernelGetTickCount();
-
-while(!ackReceived && (osKernelGetTickCount() - startTime) < 200) {
-    osDelay(10);
-}
-
-if(!ackReceived) {
-    UART_Log("ERROR", "Node A did not ACK command!");
-    // Could retry, increment error counter, trigger fault handler
-}
-```
+   
 
 ## Wiring Guide
 
@@ -134,7 +117,7 @@ if(!ackReceived) {
 |---|---|---|
 | TxD | PA12 (CN10 Pin 12) | CAN TX |
 | RxD | PA11 (CN10 Pin 14) | CAN RX |
-| VCC | 3.3V (CN6 Pin 4) | Power supply |
+| VCC | 5V (CN6 Pin 5) | Power supply |
 | GND | GND (CN6 Pin 6) | Ground |
 
 **Wire both modules identically to their respective NUCLEO boards.**
