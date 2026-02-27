@@ -9,6 +9,10 @@ A distributed embedded system demonstrating command-based CAN bus communication 
 
 https://github.com/user-attachments/assets/c7f22ab6-4aec-4753-a349-9935ddf73181
 
+![03F37D68-DCCA-4F38-9AD6-7EA5EFF52ED0_1_102_o](https://github.com/user-attachments/assets/eecd04a4-b06b-4c99-93a1-049acc2f7b5d)
+
+![3687B813-5619-4D95-8D1E-A8FB018D1F02_1_102_o](https://github.com/user-attachments/assets/b65d2cdd-7cad-4f7e-ba4f-f58fc12e2125)
+
 
 ## Skills Demonstrated
 - **FreeRTOS** — Multiple tasks, message queues, ISR-to-task communication, semaphores
