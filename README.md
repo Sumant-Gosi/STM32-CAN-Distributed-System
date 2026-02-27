@@ -7,7 +7,7 @@ A distributed embedded system demonstrating command-based CAN bus communication 
 
 ## Demo
 
-![D6B011D3-BC69-4A10-BF48-09C2F9440FF5_1_102_o](https://github.com/user-attachments/assets/4e971803-900b-40a2-8fb7-4890ace309ba)
+https://github.com/user-attachments/assets/c7f22ab6-4aec-4753-a349-9935ddf73181
 
 
 ## Skills Demonstrated
