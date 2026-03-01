@@ -270,28 +270,6 @@ pip3 install pyserial matplotlib
 - **RTOS Debugging:** FreeRTOS Task List view for CPU usage monitoring
 - **Protocol Analysis:** UART logs + optional CAN bus analyzer
 
-### Debug Workflow Examples
-
-**Set breakpoint in CAN RX ISR:**
-```c
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-    // Breakpoint here to inspect incoming frames
-}
-```
-
-**Watch FreeRTOS queue depth:**
-```
-Add to Live Expressions: canRxQueueHandle
-```
-
-**Trigger HardFault intentionally (for learning):**
-```c
-uint32_t *badPtr = (uint32_t*)0xFFFFFFFF;
-*badPtr = 0x1234;  // Causes HardFault
-```
-
-Then use stack trace to diagnose.
 
 ## Project Structure
 ```
