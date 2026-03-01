@@ -5,13 +5,15 @@ A distributed embedded system demonstrating command-based CAN bus communication 
 ## System Architecture
 <img width="415" height="693" alt="stm32-can-based-distributed-system drawio" src="https://github.com/user-attachments/assets/1bf699ab-ea99-4137-95e2-d91561b015b4" />
 
-## Demo
+## Demo and Visualization
 
 https://github.com/user-attachments/assets/c7f22ab6-4aec-4753-a349-9935ddf73181
 
 ![03F37D68-DCCA-4F38-9AD6-7EA5EFF52ED0_1_102_o](https://github.com/user-attachments/assets/eecd04a4-b06b-4c99-93a1-049acc2f7b5d)
 
 ![3687B813-5619-4D95-8D1E-A8FB018D1F02_1_102_o](https://github.com/user-attachments/assets/b65d2cdd-7cad-4f7e-ba4f-f58fc12e2125)
+
+<img width="1423" height="819" alt="Screenshot 2026-03-01 at 13 04 14" src="https://github.com/user-attachments/assets/6cf1c291-6926-4417-aec3-32bf81241010" />
 
 
 ## Skills Demonstrated
